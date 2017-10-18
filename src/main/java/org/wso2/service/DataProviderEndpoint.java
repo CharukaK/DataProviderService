@@ -34,22 +34,21 @@ import java.util.Map;
 @ServerEndpoint(value = "/data-provider")
 public class DataProviderEndpoint {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataProviderEndpoint.class);
-    private Map<String,DataProvider> providerMap=new HashMap<>();
+    private Map<String, DataProvider> providerMap = new HashMap<>();
 
     @OnOpen
-    public void onOpen(Session session){
-        LOGGER.info("Connected with user : "+session.getId());
+    public void onOpen(Session session) {
+        LOGGER.info("Connected with user : " + session.getId());
     }
 
     @OnMessage
-    public void onMessage(String text,Session session){
-
-        switch (text.split("=")[0]){
-            case "rdbmsConf":{
-
-                RDBMSProviderConf conf=new Gson().fromJson(text.split("=")[1],RDBMSProviderConf.class);
-                DataProvider rdbmsProvider=new RDBMSProvider().init(conf).start(); //initialize and start the data provider
-                providerMap.put(session.getId(),rdbmsProvider); //save the data provider instance in the Map
+    public void onMessage(String text, Session session) {
+        switch (text.split("=")[0]) {
+            case "rdbmsConf": {
+                System.out.println("started");
+                RDBMSProviderConf conf = new Gson().fromJson(text.split("=")[1], RDBMSProviderConf.class);
+                DataProvider rdbmsProvider = new RDBMSProvider(conf, session).start(); //initialize and start the data provider
+                providerMap.put(session.getId(), rdbmsProvider); //save the data provider instance in the Map
                 break;
             }
 
@@ -59,8 +58,8 @@ public class DataProviderEndpoint {
     }
 
     @OnClose
-    public void onClose(Session session){
-        if(providerMap.containsKey(session.getId())){
+    public void onClose(Session session) {
+        if (providerMap.containsKey(session.getId())) {
             providerMap.get(session.getId()).shutDown();
             providerMap.remove(session.getId());
         }
