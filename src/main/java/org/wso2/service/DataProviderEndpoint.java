@@ -25,6 +25,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,12 +44,29 @@ public class DataProviderEndpoint {
 
     @OnMessage
     public void onMessage(String text, Session session) {
-        switch (text.split("=")[0]) {
-            case "rdbmsConf": {
-                System.out.println("started");
-                RDBMSProviderConf conf = new Gson().fromJson(text.split("=")[1], RDBMSProviderConf.class);
-                DataProvider rdbmsProvider = new RDBMSProvider(conf, session).start(); //initialize and start the data provider
+//        System.out.println(text);
+        switch (text.split(";")[0]) {
+            case "rdbms": {
+
+                RDBMSProviderConf conf = new Gson().fromJson(text.split(";")[1], RDBMSProviderConf.class);
+                DataProvider rdbmsProvider =
+                        new RDBMSProvider(conf, session)
+                                .setlastRow(Integer.parseInt(text.split(";")[2]))
+                                .start();
+                //initialize and
+                // start the
+                // data provider
                 providerMap.put(session.getId(), rdbmsProvider); //save the data provider instance in the Map
+                break;
+            }
+            case "ping": {//to communicate with client to check the connection is open
+                new Thread(() -> {
+                    try {
+                        session.getBasicRemote().sendText("pong");
+                    } catch (IOException e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
+                }).start();
                 break;
             }
 

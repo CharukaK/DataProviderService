@@ -20,25 +20,25 @@ package org.wso2.service;
  * template class for data set metadata
  */
 
-public class DataSetMetadata {
+class DataSetMetadata {
     private String[] names;
     private String[] types;
 
 
-    public DataSetMetadata(int columnCount) {
+    DataSetMetadata(int columnCount) {
         names=new String[columnCount];
         types=new String[columnCount];
     }
 
-    public String[] getNames() {
+    String[] getNames() {
         return names;
     }
 
-    public String[] getTypes() {
+    String[] getTypes() {
         return types;
     }
 
-    public void put(int columnNo,String name, String type){
+    void put(int columnNo, String name, String type){
         this.names[columnNo]=name;
         this.types[columnNo]=type;
     }

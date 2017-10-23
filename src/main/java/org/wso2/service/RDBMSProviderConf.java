@@ -25,7 +25,7 @@ public class RDBMSProviderConf {
     private String username;
     private String password;
     private String query;
-
+    private int pollingInterval;
 
     public RDBMSProviderConf(String url, String table, String username, String password, String query) {
         this.url = url;
@@ -54,5 +54,9 @@ public class RDBMSProviderConf {
 
     public String getQuery() {
         return query;
+    }
+
+    public int getPollingInterval() {
+        return pollingInterval;
     }
 }

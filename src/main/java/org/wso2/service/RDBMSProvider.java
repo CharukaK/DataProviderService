@@ -43,12 +43,12 @@ public class RDBMSProvider implements DataProvider {
     private int prevLastRow;
 
     public RDBMSProvider(RDBMSProviderConf providerConf, Session session) {
-        prevLastRow=0;
+        prevLastRow = 0;
         stopPolling = false;
         sentMetaData = false;
         this.providerConf = providerConf;
         this.session = session;
-
+//        LOGGER.info("RDBMS provider initiated");
     }
 
     /**
@@ -56,13 +56,13 @@ public class RDBMSProvider implements DataProvider {
      *
      * @return java.sql.Connection object for the dataProvider Configuration
      */
-    private Connection getConnection() throws SQLException {
+    public static Connection getConnection(String url,String username, String password) throws SQLException {
         Properties properties = new Properties();
-        properties.setProperty("user", providerConf.getUsername());
-        properties.setProperty("password", providerConf.getPassword());
+        properties.setProperty("user", username);
+        properties.setProperty("password", password);
         properties.setProperty("useSSL", "false");
         properties.setProperty("autoReconnect", "true");
-        return DriverManager.getConnection(providerConf.getUrl(), properties);
+        return DriverManager.getConnection(url, properties);
     }
 
 
@@ -79,15 +79,17 @@ public class RDBMSProvider implements DataProvider {
 
     @Override
     public DataProvider start() {
+//        LOGGER.info("Polling started");
         try {
-            connection = getConnection();
+            connection = RDBMSProvider.getConnection(providerConf.getUrl(),providerConf.getUsername(),
+                                                                                   providerConf.getPassword());
         } catch (SQLException e) {
             LOGGER.error(e.getMessage(), e);
         }
         pollThread = new Thread(() -> {
 
             while (!stopPolling) {
-                System.out.println("test");
+
 
                 try {
                     Statement statement = connection.createStatement();
@@ -102,49 +104,48 @@ public class RDBMSProvider implements DataProvider {
                                     getMetadataTypes(providerConf.getUrl().split(":")[1], rsmd.getColumnTypeName(i)));
                         }
 
-                        sendMessage(session, "metadata=" + new Gson().toJson(metadata));
+                        sendMessage(session, "metadata;" + new Gson().toJson(metadata));
                         sentMetaData = true;
-
 
 
                     }
 
                     resultSet.last();
-                    int currentLast=resultSet.getRow();
+                    int currentLast = resultSet.getRow();
                     resultSet.beforeFirst();
-                    Object[][] data = new Object[currentLast-prevLastRow][metadata.getNames().length];
-                    System.out.println("prevLastRow : "+prevLastRow);
-                    if(prevLastRow<currentLast){
+                    Object[][] data = new Object[currentLast - prevLastRow][metadata.getNames().length];
+                    if (prevLastRow < currentLast) {
 
-                        while (resultSet.next()){
-                            if(resultSet.getRow()<=prevLastRow){
+                        while (resultSet.next()) {
+                            if (resultSet.getRow() <= prevLastRow) {
                                 continue;
                             }
 
                             for (int i = 1; i <= metadata.getNames().length; i++) {
                                 if (metadata.getTypes()[i - 1].equalsIgnoreCase("linear")) {
-                                    data[resultSet.getRow()-prevLastRow-1][i - 1] = resultSet.getDouble(i);
+                                    data[resultSet.getRow() - prevLastRow - 1][i - 1] = resultSet.getDouble(i);
                                 } else if (metadata.getTypes()[i - 1].equalsIgnoreCase("ordinal")) {
-                                    data[resultSet.getRow()-prevLastRow-1][i - 1] = resultSet.getString(i);
+                                    data[resultSet.getRow() - prevLastRow - 1][i - 1] = resultSet.getString(i);
                                 } else {
-                                    data[resultSet.getRow()-prevLastRow-1][i - 1] = resultSet.getDate(i);
+                                    data[resultSet.getRow() - prevLastRow - 1][i - 1] = resultSet.getDate(i);
                                 }
                             }
 
 
                         }
 
-                        sendMessage(session,"data="+new Gson().toJson(data));
-                        prevLastRow=currentLast;
+                        sendMessage(session, "data;" + new Gson().toJson(data)+";"+currentLast);
+                        prevLastRow = currentLast;
                     }
 
 
-                } catch (SQLException e) {
+                } catch (SQLException | NullPointerException e) {
                     LOGGER.error(e.getMessage(), e);
+                    stopPolling=true;
                 }
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(providerConf.getPollingInterval());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -158,6 +159,12 @@ public class RDBMSProvider implements DataProvider {
     }
 
 
+    /**
+     * send messages to the frontend client
+     *
+     * @param session Session object between client and the socket endpoint
+     * @param message String message to be sent
+     */
     private void sendMessage(Session session, String message) {
         try {
             session.getBasicRemote().sendText(message);
@@ -166,17 +173,29 @@ public class RDBMSProvider implements DataProvider {
         }
     }
 
-
+    /**
+     * Get metadata type(linear,ordinal,time) for the given data type of the data base
+     * @param dbType String name of the database that the datatype belongs
+     * @param dataType String data type name provided by the result set metadata
+     * @return String metadata type
+     */
     private String getMetadataTypes(String dbType, String dataType) {
         String[] linearTypes = new String[0];
         String[] ordinalTypes = new String[0];
 //        String[] timeTypes;
-
+        //ToDo: data type implementation for supported databases
         switch (dbType) {
             case "mysql":
                 linearTypes = new String[]{"INTEGER", "INT", "SMALLINT", "TINYINT", "MEDIUMINT", "BIGINT", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE"};
                 ordinalTypes = new String[]{"CHAR", "VARCHAR", "BINARY", "VARBINARY", "BLOB", "TEXT", "ENUM", "SET"};
-
+                break;
+            case "postgresql":
+                break;
+            case "derby":
+                break;
+            case "oracle":
+                linearTypes = new String[]{"NUMBER","BINARY_FLOAT","BINARY_DOUBLE"};
+                ordinalTypes = new String[]{"CHAR", "VARCHAR","VARCHAR2", "NCHAR","NVARCHAR2",};
                 break;
             default:
                 LOGGER.warn("Unknown database");
@@ -193,4 +212,8 @@ public class RDBMSProvider implements DataProvider {
 
     }
 
+    public RDBMSProvider setlastRow(int prevLastRow) {
+        this.prevLastRow = prevLastRow;
+        return this;
+    }
 }

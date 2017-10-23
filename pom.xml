@@ -31,4 +31,13 @@
         <microservice.mainClass>org.wso2.service.Application</microservice.mainClass>
     </properties>
 
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/configs</directory>
+            </resource>
+        </resources>
+    </build>
+
 </project>

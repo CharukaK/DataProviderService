@@ -1,0 +1,32 @@
+{
+  "providers": [
+    {
+      "info": {
+        "id": "rdbms",
+        "name": "Relational Database Management System"
+      },
+      "config": [
+        {
+          "label": "Database URL",
+          "type": "text"
+        },
+        {
+          "label": "Table Name",
+          "type": "text"
+        },
+        {
+          "label": "Username",
+          "type": "text"
+        },
+        {
+          "label": "Password",
+          "type": "password"
+        },
+        {
+          "label": "Query",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

@@ -21,6 +21,7 @@ import javax.websocket.Session;
 public interface DataProvider {
 
 //    DataProvider init(String providerConfig, Session session);
+
     /**
      * terminates the provider session and stop the polling thread
      */
