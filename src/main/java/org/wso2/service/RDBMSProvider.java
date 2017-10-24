@@ -101,7 +101,9 @@ public class RDBMSProvider implements DataProvider {
 
                         for (int i = 1; i <= rsmd.getColumnCount(); i++) {
                             metadata.put(i - 1, rsmd.getColumnName(i),
-                                    getMetadataTypes(providerConf.getUrl().split(":")[1], rsmd.getColumnTypeName(i)));
+                                    RDBMSProvider.getMetadataTypes(providerConf.getUrl().split(":")[1], rsmd
+                                            .getColumnTypeName
+                                            (i)));
                         }
 
                         sendMessage(session, "metadata;" + new Gson().toJson(metadata));
@@ -179,7 +181,7 @@ public class RDBMSProvider implements DataProvider {
      * @param dataType String data type name provided by the result set metadata
      * @return String metadata type
      */
-    private String getMetadataTypes(String dbType, String dataType) {
+    public static String getMetadataTypes(String dbType, String dataType) {
         String[] linearTypes = new String[0];
         String[] ordinalTypes = new String[0];
 //        String[] timeTypes;
