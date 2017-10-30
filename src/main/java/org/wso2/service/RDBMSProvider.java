@@ -43,7 +43,7 @@ public class RDBMSProvider implements DataProvider {
     private int prevLastRow;
 
     public RDBMSProvider(RDBMSProviderConf providerConf, Session session) {
-        prevLastRow = 0;
+
         stopPolling = false;
         sentMetaData = false;
         this.providerConf = providerConf;
@@ -70,7 +70,7 @@ public class RDBMSProvider implements DataProvider {
     public void shutDown() {
         try {
             stopPolling = true;
-            pollThread.join();
+            pollThread.join();//TODO: Use a scheduled executor service move the thread to the publisher
             connection.close();
         } catch (InterruptedException | SQLException e) {
             LOGGER.error(e.getMessage(), e);
@@ -171,7 +171,7 @@ public class RDBMSProvider implements DataProvider {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Socket failed to send message to the client", e);//TODO: give a meaningful message
         }
     }
 
@@ -214,7 +214,7 @@ public class RDBMSProvider implements DataProvider {
 
     }
 
-    public RDBMSProvider setlastRow(int prevLastRow) {
+    public RDBMSProvider setLastRow(int prevLastRow) {//TODO: move the lastRowto session objects
         this.prevLastRow = prevLastRow;
         return this;
     }

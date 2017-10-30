@@ -19,6 +19,7 @@ package org.wso2.service;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -104,7 +105,7 @@ public class GenerationAPI {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("SQL Error Occurred",e);
         }
 
 

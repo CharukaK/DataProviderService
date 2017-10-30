@@ -47,11 +47,11 @@ public class DataProviderEndpoint {
 //        System.out.println(text);
         switch (text.split(";")[0]) {
             case "rdbms": {
-
+//TODO : DAta provider factory , don't use split
                 RDBMSProviderConf conf = new Gson().fromJson(text.split(";")[1], RDBMSProviderConf.class);
                 DataProvider rdbmsProvider =
                         new RDBMSProvider(conf, session)
-                                .setlastRow(Integer.parseInt(text.split(";")[2]))
+                                .setLastRow(Integer.parseInt(text.split(";")[2]))
                                 .start();
                 //initialize and
                 // start the
@@ -60,7 +60,7 @@ public class DataProviderEndpoint {
                 break;
             }
             case "ping": {//to communicate with client to check the connection is open
-                new Thread(() -> {
+                new Thread(() -> {//TODO: use a separate method
                     try {
                         session.getBasicRemote().sendText("pong");
                     } catch (IOException e) {
@@ -70,7 +70,7 @@ public class DataProviderEndpoint {
                 break;
             }
 
-            default:
+            default://TODO: send bacllk error message
                 LOGGER.error("Unknown Provider");
         }
     }

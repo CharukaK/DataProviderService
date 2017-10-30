@@ -26,12 +26,7 @@ import org.wso2.msf4j.MicroservicesRunner;
  */
 public class Application {
     public static void main(String[] args) {
-//        MicroservicesRunner microservicesRunner= new MicroservicesRunner();
-//
-//        microservicesRunner.deployWebSocketEndpoint(new DataProviderEndpoint());
-//        microservicesRunner.deploy(new GenerationAPI());
-//
-//        microservicesRunner.start();
+
         new MicroservicesRunner()
                 .deploy(new GenerationAPI())
                 .deployWebSocketEndpoint(new DataProviderEndpoint())
